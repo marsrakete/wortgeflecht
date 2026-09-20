@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Wortgeflecht · Gedanken in drei Dimensionen</title>
+    <meta name="theme-color" content="#0b1020" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="./pyramiden-icon.png" />
+    <link rel="stylesheet" href="./styles/word-network.css" />
+  </head>
+  <body>
+    <div class="workspace">
+      <aside class="panel">
+        <p class="eyebrow">Ein eigenständiger Raum für Verbindungen</p>
+        <h1>Wort<span>geflecht</span><span class="title-dot">.</span></h1>
+        <p class="intro">
+          Drei Perspektiven. Gemeinsame Worte. Zieh an einem Gedanken und
+          entdecke, was mit ihm verbunden ist.
+        </p>
+        <form id="words-form">
+          <div class="word-field axis-x">
+            <label for="words-x"
+              ><b>X</b> Perspektive X <small>XY-Ebene</small></label
+            ><textarea id="words-x" rows="3" spellcheck="false">
+Idee Raum Verbindung Zukunft</textarea>
+          </div>
+          <div class="word-field axis-y">
+            <label for="words-y"
+              ><b>Y</b> Perspektive Y <small>YZ-Ebene</small></label
+            ><textarea id="words-y" rows="3" spellcheck="false">
+Mensch Idee Wandel Nähe</textarea>
+          </div>
+          <div class="word-field axis-z">
+            <label for="words-z"
+              ><b>Z</b> Perspektive Z <small>XZ-Ebene</small></label
+            ><textarea id="words-z" rows="3" spellcheck="false">
+Natur Wandel Raum Zukunft</textarea>
+          </div>
+          <p class="field-help">
+            Leerzeichen oder Zeilenumbrüche trennen Wörter. Bis zu 60
+            unterschiedliche Wörter je Ebene. Änderungen erscheinen direkt.
+          </p>
+        </form>
+        <div class="actions">
+          <button id="reset" class="reset" type="button">↺ Reset</button
+          ><button id="rotate" type="button" aria-pressed="false">
+            ↻ Rotation
+          </button>
+        </div>
+        <label class="plane-toggle"
+          ><input id="planes" type="checkbox" checked /> Ebenen anzeigen</label
+        >
+        <p class="help">
+          Wort ziehen: Netz entfalten.<br />Freien Raum ziehen: Ansicht
+          drehen.<br />Mausrad / zwei Finger: zoomen.<br />Fokussiertes Wort +
+          Pfeiltasten: verschieben.
+        </p>
+        <p class="reset-help">
+          Reset glättet das Netz und setzt die Ansicht zurück. Deine Wörter
+          bleiben erhalten.
+        </p>
+      </aside>
+      <main
+        class="stage"
+        id="view"
+        aria-label="Interaktives dreidimensionales Wortgeflecht"
+      >
+        <header class="stage-header">
+          <span class="live-dot"></span> Dein Gedankenraum
+          <span class="stage-note">An einem Wort ziehen →</span>
+        </header>
+        <div class="empty" id="empty" hidden>
+          Dein Raum ist noch leer.<br /><span
+            >Füge links die ersten Wörter ein.</span
+          >
+        </div>
+        <div class="stage-footer">
+          <div class="legend">
+            <span class="axis-x">● X</span><span class="axis-y">● Y</span
+            ><span class="axis-z">● Z</span><span>⋯ Gemeinsames Wort</span>
+          </div>
+          <p id="summary" aria-live="polite">
+            <span id="node-count">0</span> Knoten ·
+            <span id="link-count">0</span> Raumverbindungen
+          </p>
+        </div>
+        <p id="limit-warning" role="status" hidden>
+          Ein Feld enthält mehr als 60 unterschiedliche Wörter. Angezeigt werden
+          jeweils die ersten 60.
+        </p>
+      </main>
+    </div>
+    <template id="word-template"
+      ><button type="button" class="word-node">
+        <span class="node-dot"></span><span class="word-text"></span
+        ><span class="pin-mark" aria-hidden="true">◆</span>
+      </button></template
+    >
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="./word-network/main.js"></script>
+  </body>
+</html>

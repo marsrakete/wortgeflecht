@@ -1,0 +1,11 @@
+{
+  "name": "Wortgeflecht – 3D-Wortnetz",
+  "short_name": "Wortgeflecht",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "icons": [
+    {"src": "pyramiden-icon.png", "sizes": "any", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
