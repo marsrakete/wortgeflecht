@@ -1,0 +1,13 @@
+{
+  "source": "assets/wortgeflecht-og.svg",
+  "render": {
+    "width": 1200,
+    "height": 630,
+    "loadSystemFonts": true,
+    "background": "#0b1020"
+  },
+  "outputs": [
+    { "format": "png", "path": "assets/wortgeflecht-og.png" },
+    { "format": "jpeg", "path": "og-image.jpg", "quality": 92 }
+  ]
+}

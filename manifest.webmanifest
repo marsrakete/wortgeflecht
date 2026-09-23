@@ -6,6 +6,8 @@
   "background_color": "#0b1020",
   "theme_color": "#0b1020",
   "icons": [
-    {"src": "pyramiden-icon.png", "sizes": "any", "type": "image/png", "purpose": "any maskable"}
+    {"src": "assets/wortgeflecht-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "assets/wortgeflecht-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "assets/wortgeflecht-favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
   ]
 }

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Wortgeflecht – Gedanken in drei Dimensionen</title>
+  <desc id="desc">Ein dreidimensionales Netz aus Wörtern auf drei farbigen Ebenen.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.58" stop-color="#111d38"/>
+      <stop offset="1" stop-color="#1b2546"/>
+    </linearGradient>
+    <linearGradient id="aqua" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#79ded1"/>
+      <stop offset="1" stop-color="#38bdb5"/>
+    </linearGradient>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity=".35"/>
+    </filter>
+    <style>
+      .eyebrow { font-family: "Segoe UI", Arial, sans-serif; font-size: 16px; font-weight: 700; letter-spacing: 4px; fill: #79ded1; }
+      .title { font-family: "Segoe UI", Arial, sans-serif; font-size: 62px; font-weight: 700; fill: #f3f7ff; }
+      .subtitle { font-family: "Segoe UI", Arial, sans-serif; font-size: 23px; fill: #a7b7d5; }
+      .label { font-family: "Segoe UI", Arial, sans-serif; font-size: 18px; font-weight: 600; fill: #eef4ff; }
+    </style>
+  </defs>
+  <rect width="1200" height="630" fill="url(#background)"/>
+  <circle cx="1070" cy="90" r="220" fill="#79ded1" fill-opacity=".08"/>
+  <circle cx="1080" cy="520" r="260" fill="#b6a0ff" fill-opacity=".08"/>
+  <path d="M0 548C240 478 390 575 608 505C815 438 1004 470 1200 406V630H0Z" fill="#79ded1" fill-opacity=".06"/>
+
+  <g transform="translate(78 82)">
+    <text class="eyebrow">EIN GEDANKENRAUM</text>
+    <text class="title" y="82">Wortgeflecht.</text>
+    <text class="subtitle" y="128">Drei Perspektiven. Gemeinsame Worte.</text>
+    <text class="subtitle" y="164">Zieh an einem Gedanken und entdecke Verbindungen.</text>
+  </g>
+
+  <g transform="translate(640 55)" filter="url(#shadow)">
+    <polygon points="210,75 515,138 386,420 78,356" fill="#79ded1" fill-opacity=".07" stroke="#79ded1" stroke-opacity=".55" stroke-width="2"/>
+    <polygon points="210,75 78,356 84,505 220,207" fill="#b6a0ff" fill-opacity=".07" stroke="#b6a0ff" stroke-opacity=".48" stroke-width="2"/>
+    <polygon points="210,75 515,138 484,285 220,207" fill="#f6bd77" fill-opacity=".07" stroke="#f6bd77" stroke-opacity=".48" stroke-width="2"/>
+    <g stroke="#dbe8ff" stroke-opacity=".55" stroke-width="2" stroke-dasharray="7 9">
+      <path d="M176 178L349 244L433 174"/>
+      <path d="M349 244L295 345L433 174"/>
+      <path d="M295 345L170 405L433 174"/>
+    </g>
+    <g fill="#79ded1" stroke="#d9fffa" stroke-width="2" filter="url(#glow)">
+      <circle cx="176" cy="178" r="10"/><circle cx="349" cy="244" r="10"/><circle cx="433" cy="174" r="10"/>
+    </g>
+    <g fill="#b6a0ff" stroke="#f1edff" stroke-width="2" filter="url(#glow)">
+      <circle cx="295" cy="345" r="10"/><circle cx="170" cy="405" r="10"/>
+    </g>
+    <g fill="#f6bd77" stroke="#fff1d9" stroke-width="2" filter="url(#glow)">
+      <circle cx="484" cy="285" r="10"/>
+    </g>
+    <g class="label">
+      <rect x="124" y="127" width="98" height="38" rx="10" fill="#13233c" stroke="#79ded1" stroke-opacity=".65"/>
+      <text x="146" y="152">Idee</text>
+      <rect x="300" y="193" width="112" height="38" rx="10" fill="#13233c" stroke="#79ded1" stroke-opacity=".65"/>
+      <text x="322" y="218">Verbindung</text>
+      <rect x="245" y="365" width="108" height="38" rx="10" fill="#191a3d" stroke="#b6a0ff" stroke-opacity=".65"/>
+      <text x="267" y="390">Wandel</text>
+      <rect x="424" y="298" width="98" height="38" rx="10" fill="#2b2334" stroke="#f6bd77" stroke-opacity=".65"/>
+      <text x="446" y="323">Raum</text>
+    </g>
+  </g>
+  <g transform="translate(80 555)" fill="#8fa3c5" font-family="Segoe UI, Arial, sans-serif" font-size="16">
+    <circle cx="6" cy="-5" r="5" fill="#79ded1"/><text x="22">XY</text>
+    <circle cx="74" cy="-5" r="5" fill="#b6a0ff"/><text x="90">YZ</text>
+    <circle cx="142" cy="-5" r="5" fill="#f6bd77"/><text x="158">XZ</text>
+  </g>
+</svg>

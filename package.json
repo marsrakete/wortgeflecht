@@ -1,0 +1,26 @@
+{
+  "name": "wortgeflecht",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "http-server . -a 127.0.0.1 -p 4173 -c-1",
+    "check": "node scripts/check.js",
+    "build:og-image": "node scripts/build-og-images.cjs",
+    "test": "npm run check && npm run test:unit && npm run test:browser",
+    "test:unit": "node --test tests/*.test.js",
+    "test:browser": "playwright test"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "sharp": "^0.35.2",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "http-server": "14.1.1"
+  }
+}
