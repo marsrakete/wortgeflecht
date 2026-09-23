@@ -57,6 +57,7 @@ Natur Wandel Raum Zukunft</textarea><details class="cloud-menu"><summary aria-la
         <div class="project-actions" aria-label="Projektverwaltung">
           <button id="project-save" class="project-primary" type="button"><span aria-hidden="true">↧</span> Projekt speichern</button>
           <button id="project-load" type="button"><span aria-hidden="true">▤</span> Projekt laden</button>
+          <button id="project-share" type="button"><span aria-hidden="true">↗</span> Teilen</button>
         </div>
         <div id="storage-status" class="storage-status" role="status" aria-live="polite" hidden></div>
         <div class="actions">
@@ -116,7 +117,18 @@ Natur Wandel Raum Zukunft</textarea><details class="cloud-menu"><summary aria-la
     >
     <dialog id="cloud-dialog"><form method="dialog"><h2 id="cloud-dialog-title">Wortwolken</h2><div id="cloud-list"></div><button value="cancel">Schließen</button></form></dialog>
     <dialog id="project-dialog"><form method="dialog"><h2>Projekte</h2><div id="project-list"></div><button value="cancel">Schließen</button></form></dialog>
-    <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title" aria-describedby="action-message">
+    <dialog id="share-dialog" class="action-dialog" aria-labelledby="share-title">
+      <form class="action-dialog-content">
+        <span class="action-dialog-mark" aria-hidden="true">↗</span>
+        <h2 id="share-title">Teil-URL</h2>
+        <p>Das automatische Kopieren wurde vom Browser blockiert. Markiere die URL und kopiere sie mit Strg+C.</p>
+        <input id="share-url" type="text" readonly aria-label="Teil-URL" />
+        <div class="action-dialog-buttons">
+          <button id="share-select" type="button">Alles auswählen</button>
+          <button id="share-close" type="button">Schließen</button>
+        </div>
+      </form>
+    </dialog>    <dialog id="action-dialog" class="action-dialog" aria-labelledby="action-title" aria-describedby="action-message">
       <form class="action-dialog-content">
         <span class="action-dialog-mark" aria-hidden="true">!</span>
         <h2 id="action-title">Aktion bestätigen</h2>

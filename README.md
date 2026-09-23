@@ -10,7 +10,7 @@ Die zuletzt verwendeten drei Eingabefelder werden automatisch in IndexedDB gespe
 
 ## Teilen
 
-Eine Teilen-Funktion kann ein Projekt als komprimierte URL übertragen. Dafür werden die drei Texte und die nötigen Projektmetadaten serialisiert; beim Öffnen der URL wird daraus ein neues lokales Projekt erzeugt. Für sehr große Projekte ist zusätzlich ein Datei-Export sinnvoll, weil URL-Limits von Browsern, Servern und Messengern unterschiedlich sind. Die konkrete URL-Kompression und die daraus abgeleitete Wortgrenze werden bei der Implementierung geprüft und angezeigt.
+Über `Teilen` wird das aktuelle Tripel als komprimierte URL in die Zwischenablage kopiert. Beim Öffnen der URL wird daraus ein neues lokales Projekt erzeugt und in IndexedDB gespeichert. Die App zeigt die Länge der erzeugten URL an und warnt ab 7.000 Zeichen; für sehr große Projekte ist ein Datei-Export zuverlässiger, weil URL-Limits von Browsern, Servern und Messengern unterschiedlich sind.
 
 ## Open-Graph-Bild und Favicon
 

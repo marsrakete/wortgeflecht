@@ -188,6 +188,9 @@ function render(time) {
 
 const activeClouds = { x: null, y: null, z: null };
 const storageStatus = document.getElementById("storage-status");const actionDialog = document.getElementById("action-dialog");
+const shareDialog = document.getElementById("share-dialog");
+document.getElementById("share-close").addEventListener("click", () => shareDialog.close());
+document.getElementById("share-select").addEventListener("click", () => { const input = document.getElementById("share-url"); input.focus(); input.select(); });
 document.addEventListener("click", closeCloudMenusAfterOutsideClick);
 document.addEventListener("keydown", closeCloudMenusOnEscape);
 for (const button of document.querySelectorAll(".cloud-save")) {
@@ -201,6 +204,8 @@ for (const button of document.querySelectorAll(".cloud-load")) {
 }
 document.getElementById("project-save").addEventListener("click", saveCurrentProject);
 document.getElementById("project-load").addEventListener("click", showProjects);
+document.getElementById("project-share").addEventListener("click", shareCurrentProject);
+void restoreSharedProject();
 
 /** Zeigt eine zeitlich begrenzte Erfolgs- oder Fehlermeldung für Speichervorgänge. @param {string} message Sichtbarer Meldungstext. @param {string} kind Meldungstyp: success oder error. @returns {void} Kein Rückgabewert. */
 /** Schließt geöffnete Wortwolken-Menüs, wenn außerhalb eines Menüs geklickt wird. @param {MouseEvent} event Klickereignis. @returns {void} Kein Rückgabewert. */
@@ -466,4 +471,99 @@ async function showProjects() {
 /** Sortiert Einträge nach letzter Änderung. @param {object} left Erster Eintrag. @param {object} right Zweiter Eintrag. @returns {number} Sortierung. */
 function sortByUpdated(left, right) {
   return String(right.updatedAt).localeCompare(String(left.updatedAt));
+}
+/** Kodiert Bytes URL-sicher für den Hash einer Teil-URL. @param {Uint8Array} bytes Komprimierte Bytes. @returns {string} Base64URL-Text. */
+function encodeBase64Url(bytes) {
+  let binary = "";
+  for (const byte of bytes) { binary += String.fromCharCode(byte); }
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+/** Dekodiert einen Base64URL-Text in Bytes. @param {string} value Base64URL-Text. @returns {Uint8Array} Dekodierte Bytes. */
+function decodeBase64Url(value) {
+  const base64 = value.replaceAll("-", "+").replaceAll("_", "/") + "===".slice((value.length + 3) % 4);
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index++) { bytes[index] = binary.charCodeAt(index); }
+  return bytes;
+}
+/** Komprimiert die aktuelle Projektstruktur für eine Teil-URL. @param {object} payload Teilbare Projektdaten. @returns {Promise<string>} Komprimierter Base64URL-Text. */
+async function compressSharePayload(payload) {
+  const input = new TextEncoder().encode(JSON.stringify(payload));
+  if (typeof CompressionStream !== "function") { return "r." + encodeBase64Url(input); }
+  const compressedStream = new Blob([input]).stream().pipeThrough(new CompressionStream("gzip"));
+  return "d." + encodeBase64Url(new Uint8Array(await new Response(compressedStream).arrayBuffer()));
+}
+/** Dekomprimiert eine Teil-URL in Projektdaten. @param {string} value Komprimierter Hash-Inhalt. @returns {Promise<object>} Teilbare Projektdaten. */
+async function decompressSharePayload(value) {
+  const input = decodeBase64Url(value);
+  if (typeof DecompressionStream !== "function") { return JSON.parse(new TextDecoder().decode(input)); }
+  const decompressedStream = new Blob([input]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return JSON.parse(new TextDecoder().decode(new Uint8Array(await new Response(decompressedStream).arrayBuffer())));
+}
+/** Erzeugt eine kompakte Teilstruktur aus den drei aktuellen Eingaben. @returns {object} Teilbare Projektdaten. */
+function getSharePayload() { return { v: 1, name: "Wortgeflecht", x: document.getElementById("words-x").value, y: document.getElementById("words-y").value, z: document.getElementById("words-z").value }; }
+/** Erzeugt synchron eine sofort teilbare URL ohne asynchronen Kompressionsschritt. @returns {string} Teil-URL mit Base64URL-Nutzlast. */
+function createImmediateShareUrl() {
+  const payload = new TextEncoder().encode(JSON.stringify(getSharePayload()));
+  const url = new URL(window.location.href);
+  url.hash = "share=r." + encodeBase64Url(payload);
+  return url.href;
+}
+/** Erstellt eine Teil-URL und kopiert sie in die Zwischenablage. @returns {Promise<void>} Abgeschlossener Teilversuch. */
+async function shareCurrentProject() {
+  let shareUrl = null;
+  try {
+    shareUrl = createImmediateShareUrl();
+    if (shareUrl.length > 7000) {
+      showStorageStatus("Die Teil-URL ist sehr lang (" + shareUrl.length + " Zeichen). Für dieses Projekt ist ein Datei-Export zuverlässiger.", "error");
+      return;
+    }
+    const shareData = { title: "Wortgeflecht", text: "Mein Wortgeflecht-Projekt", url: shareUrl };
+    let nativeShareAvailable = typeof navigator.share === "function";
+    if (nativeShareAvailable && typeof navigator.canShare === "function") {
+      nativeShareAvailable = navigator.canShare(shareData);
+    }
+    if (nativeShareAvailable) {
+      try {
+        await navigator.share(shareData);
+        showStorageStatus("Projekt wurde geteilt.", "success");
+        return;
+      } catch (error) {
+        if (error && error.name === "AbortError") {
+          showStorageStatus("Teilen wurde abgebrochen.", "error");
+          return;
+        }
+      }
+    }
+    if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+      throw new Error("Clipboard API nicht verfügbar");
+    }
+    await navigator.clipboard.writeText(shareUrl);
+    showStorageStatus("Teil-URL kopiert (" + shareUrl.length + " Zeichen).", "success");
+  } catch (error) {
+    if (shareUrl) {
+      document.getElementById("share-url").value = shareUrl;
+      shareDialog.showModal();
+      document.getElementById("share-url").focus();
+      document.getElementById("share-url").select();
+      showStorageStatus("Bitte kopiere die Teil-URL im geöffneten Dialog.", "error");
+      return;
+    }
+    showStorageStatus("Die Teil-URL konnte nicht erstellt werden.", "error");
+    console.error("Projekt teilen fehlgeschlagen.", error);
+  }
+}/** Stellt ein Projekt aus dem URL-Hash wieder her und speichert es lokal. @returns {Promise<void>} Abgeschlossener Wiederherstellungsversuch. */
+async function restoreSharedProject() {
+  const match = window.location.hash.match(/^#share=([^&]+)$/u);
+  if (!match) { return; }
+  try {
+    const payload = await decompressSharePayload(match[1]);
+    const values = [payload.x, payload.y, payload.z];
+    if (payload.v !== 1 || values.some((value) => typeof value !== "string")) { throw new Error("Ungültiges Teilenformat"); }
+    for (let index = 0; index < fields.length; index++) { fields[index].value = values[index]; }
+    const clouds = [];
+    for (const value of values) { const cloud = createCloud(value); await putCloud(cloud); clouds.push(cloud); }
+    await putProject(createProject(payload.name || "Geteiltes Projekt", clouds));
+    await saveInputs(values); rebuild(); history.replaceState(null, "", window.location.pathname + window.location.search); showStorageStatus("Geteiltes Projekt wurde geladen und lokal gespeichert.", "success");
+  } catch (error) { showStorageStatus("Die Teil-URL konnte nicht geladen werden.", "error"); console.error("Geteiltes Projekt laden fehlgeschlagen.", error); }
 }
