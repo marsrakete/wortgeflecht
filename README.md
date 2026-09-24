@@ -68,6 +68,7 @@ Die Tests bilden eine reproduzierbare Regressionsbasis, ersetzen aber keine Prü
 - [assets/](assets/): Favicon, App-Icons und Open-Graph-Bilder
 - [vendor/three/](vendor/three/): lokal ausgelieferte Three.js-Dateien
 - [THIRD-PARTY.md](THIRD-PARTY.md): Lizenz- und Herkunftshinweise für vendorte Komponenten
+- [PROJEKTAUSBAU.md](PROJEKTAUSBAU.md): Konzept für Gedankenknoten und räumlichen Denkraum
 - [tests/](tests/): Unit- und Browser-Tests
 - [playwright.config.js](playwright.config.js): Browserprofile und Testserver
 - [scripts/check.js](scripts/check.js): Syntax-, Ressourcen- und Versionsprüfung
