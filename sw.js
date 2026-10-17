@@ -4,7 +4,9 @@ const APP_VERSION = globalThis.APP_VERSION_INFO?.cacheVersion || "v0";
 const CACHE_NAME = `wortgeflecht-${APP_VERSION}`;
 const APP_SHELL = [
   "./",
-  "./index.html",
+  "./index.html",  "./denkraum.html",
+  "./styles/denkraum.css",
+  "./denkraum/main.js",
   "./version.js",
   "./styles/word-network.css",
   "./word-network/main.js",

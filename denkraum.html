@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Denkraum · Wortgeflecht</title><meta name="theme-color" content="#0b1020"><link rel="manifest" href="./manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="./assets/wortgeflecht-favicon.svg"><link rel="stylesheet" href="./styles/denkraum.css">
+</head>
+<body>
+<main class="denkraum-app">
+  <header class="topbar"><a href="./index.html">← Wortnetz</a><span class="eyebrow">NEUER ARBEITSRAUM</span><h1>Denkraum<span>.</span></h1></header>
+  <section id="assistant" class="assistant" aria-labelledby="assistant-title">
+    <p class="eyebrow">SCHRITT 1 VON 2</p><h2 id="assistant-title">Wörter als Ausgangspunkt</h2><p class="lead">Fülle die drei Perspektiven schnell vor. Danach entwickelst du daraus deinen eigenen räumlichen Denkraum.</p>
+    <form id="seed-form" class="seed-grid">
+      <label class="seed-field seed-x"><span><b>X</b> Kontext</span><textarea id="seed-x" rows="4" placeholder="z. B. Ziel, Sinn, Wachstum"></textarea></label>
+      <label class="seed-field seed-y"><span><b>Y</b> Menschen</span><textarea id="seed-y" rows="4" placeholder="z. B. Team, Nähe, Perspektive"></textarea></label>
+      <label class="seed-field seed-z"><span><b>Z</b> Umsetzung</span><textarea id="seed-z" rows="4" placeholder="z. B. Plan, Test, nächster Schritt"></textarea></label>
+    </form>
+    <button id="open-workspace" class="primary" type="button">Denkraum öffnen <span>→</span></button>
+  </section>
+  <section id="workspace" class="workspace" hidden aria-labelledby="workspace-title"><div class="workspace-head"><div><p class="eyebrow">SCHRITT 2 VON 2</p><h2 id="workspace-title">Dein Denkraum</h2><p>Die Wörter sind jetzt Knoten. Verschiebe und entwickle sie weiter.</p></div><div class="workspace-actions"><button id="add-node" class="primary" type="button">+ Knoten hinzufügen</button><button id="save-workspace" type="button">Projekt speichern</button><button id="back-to-seed" class="back-button" type="button">← Zurück zu Schritt 1</button></div></div><div id="workspace-status" role="status" aria-live="polite"></div><div id="node-board" class="node-board" aria-live="polite"></div></section>
+<dialog id="node-dialog" class="node-dialog"><form id="node-form"><h2 id="node-dialog-title">Knoten bearbeiten</h2><label for="node-title-input">Titel</label><input id="node-title-input" required maxlength="80" autocomplete="off"><label for="node-note-input">Notiz</label><textarea id="node-note-input" rows="4" maxlength="500"></textarea><label for="node-type-input">Bedeutung</label><select id="node-type-input"><option value="thought">Gedanke</option><option value="goal">Ziel</option><option value="problem">Problem</option><option value="action">Aktion</option></select><div class="dialog-actions"><button id="node-cancel" type="button">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form></dialog></main>
+<template id="node-template"><article class="thought-node"><button class="node-edit" type="button" aria-label="Knoten bearbeiten">✎</button><strong class="node-title"></strong><small class="node-plane"></small></article></template>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three/build/three.module.js",
+    "three/addons/": "./vendor/three/examples/jsm/"
+  }
+}
+</script>
+<script src="./version.js"></script><script type="module" src="./denkraum/main.js"></script>
+</body></html>

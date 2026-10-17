@@ -428,3 +428,4 @@ dialog form > button[value="cancel"]:hover, dialog form > button[value="cancel"]
 .action-dialog-buttons #action-confirm { border-color: #68cabc; color: #10262b; background: #79ded1; }
 .action-dialog-buttons #action-confirm[data-danger="true"] { border-color: #e18a91; color: #fff2f2; background: #a94350; }
 .action-dialog-buttons #action-confirm[data-danger="true"]:hover, .action-dialog-buttons #action-confirm[data-danger="true"]:focus-visible { border-color: #ffb2b8; background: #c45260; }
+.project-link { display: flex; min-height: 42px; align-items: center; justify-content: center; gap: 8px; border: 1px solid #b6a0ff; border-radius: 10px; padding: 9px 8px; color: #e3dbff; background: #292044; text-decoration: none; font-size: 12px; font-weight: 600; } .project-link:hover { border-color: #d8caff; background: #3a2d5b; }
