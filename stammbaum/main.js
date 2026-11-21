@@ -1,10 +1,16 @@
+import "../version.js";
 import { parseGedcom, findStart, searchName, generationRows, connectedGenerationRows, lifeDates } from "./gedcom.js";
 import { accessImport } from "./storage.js";
 
 const byId = id => document.getElementById(id);
+const version = byId("app-version");
+version.textContent = `v${globalThis.APP_VERSION_INFO.appVersion}`;
+version.hidden = false;
+
 const fileInput = byId("gedcom");
 const status = byId("status");
 const picker = byId("picker");
+const searchButton = byId("search");
 const query = byId("query");
 const results = byId("results");
 const details = byId("person");
@@ -163,12 +169,13 @@ async function showTree(data, filename, saved = true) {
   status.textContent = `${filename} · ${tree.people.size} Personen · ${tree.familyCount} Familien`
     + (saved ? "" : " · Speichern fehlgeschlagen. Der Import ist bis zum Schließen dieser Seite verfügbar.");
   byId("tools").hidden = false;
+  searchButton.disabled = false;
   datesButton.hidden = generationControls.hidden = !graph;
   select(findStart(tree.people));
   openSearch();
 }
 
-byId("search").addEventListener("click", openSearch);
+searchButton.addEventListener("click", openSearch);
 byId("close").addEventListener("click", () => picker.close());
 byId("start").addEventListener("click", () => choose(findStart(tree.people), true));
 query.addEventListener("input", renderSearch);
@@ -218,6 +225,7 @@ remove.addEventListener("click", async () => {
     query.value = "";
     results.replaceChildren();
     byId("tools").hidden = true;
+    searchButton.disabled = true;
     hint.textContent = "Wähle eine GEDCOM-Datei, um den Stammbaum zu öffnen.";
     status.textContent = "Import gelöscht.";
   } catch {

@@ -15,18 +15,23 @@
   <main>
     <header>
       <a href="./index.html">Wortgeflecht</a>
-      <h1>Stammbaum</h1>
+      <h1>Stammbaum <small id="app-version" hidden></small></h1>
       <p>Erkunde die Verbindungen deiner Familie.</p>
     </header>
     <div class="layout">
       <aside>
-        <label for="gedcom">GEDCOM-Datei</label>
+        <div class="sidebar-head">
+          <label for="gedcom">GEDCOM-Datei</label>
+          <button id="search" type="button" aria-label="Person suchen" title="Person suchen"
+            aria-haspopup="dialog" aria-controls="picker" disabled>
+            <span class="search-icon" aria-hidden="true"></span>
+          </button>
+        </div>
         <input id="gedcom" type="file" accept=".ged,.gedcom">
         <p class="muted">Die Datei bleibt in diesem Browser.</p>
         <p id="status" role="status">Lade gespeicherten Stammbaum …</p>
         <div id="tools" hidden>
           <div class="actions">
-            <button id="search" class="primary">Person suchen</button>
             <button id="remove">Import löschen</button>
           </div>
           <fieldset id="generations" hidden>
