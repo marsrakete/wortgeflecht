@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { lifeDates } from "./gedcom.js";
+import { messages } from "./i18n.js";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import { createViewport } from "../share/viewport.js";
 import { createInteraction } from "../word-network/interaction.js";
@@ -132,10 +133,10 @@ export function createGraph(view) {
         label.textContent = dates;
         button.append(label);
       }
-      const relationship = all && relation !== "focus" ? "Familienmitglied" : {
-        parents: generation === 1 ? "Elternteil" : `Vorfahren, Ebene ${generation}`,
-        partners: "Partner",
-        children: generation === 1 ? "Kind" : `Nachkommen, Ebene ${generation}`,
+      const relationship = all && relation !== "focus" ? messages.familyMember : {
+        parents: generation === 1 ? messages.parent : messages.ancestors(generation),
+        partners: messages.partner,
+        children: generation === 1 ? messages.child : messages.descendants(generation),
       }[relation];
       if (relationship) {
         button.setAttribute("aria-description", relationship);

@@ -1,4 +1,4 @@
-const filenameError = "Die Datei enthält keine lesbaren GEDCOM-Personen.";
+import { locale, messages } from "./i18n.js";
 
 export function parseGedcom(bytes) {
   const view = new Uint8Array(bytes);
@@ -44,7 +44,7 @@ export function parseGedcom(bytes) {
       if (event === "DEAT") person.death = value;
     }
   }
-  if (!people.size) throw new Error(filenameError);
+  if (!people.size) throw new Error(messages.invalidFile);
 
   for (const { parents, children } of families.values()) {
     for (const parentId of parents) {
@@ -62,7 +62,7 @@ export function parseGedcom(bytes) {
     }
   }
 
-  for (const person of people.values()) person.name = person.names[0] || "Name unbekannt";
+  for (const person of people.values()) person.name = person.names[0] || messages.unknownName;
   return { people, familyCount: families.size };
 }
 
@@ -78,7 +78,7 @@ export function findStart(people) {
 }
 
 export function searchName(value) {
-  return value.toLocaleLowerCase("de").replaceAll("ß", "ss")
+  return value.toLocaleLowerCase(locale).replaceAll("ß", "ss")
     .normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
 }
 
@@ -138,6 +138,6 @@ export function connectedGenerationRows(person, people) {
 }
 
 export function lifeDates(person) {
-  return [person.birth && `* ${person.birth}`, person.death && `† ${person.death}`]
-    .filter(Boolean).join(" · ");
+  return [person.birth && messages.birthDate(person.birth), person.death && messages.deathDate(person.death)]
+    .filter(Boolean).join(messages.separator);
 }

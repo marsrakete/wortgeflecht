@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stammbaum · Wortgeflecht</title>
+  <title data-i18n="pageTitle"></title>
   <link rel="icon" href="./assets/wortgeflecht-favicon.svg">
   <link rel="stylesheet" href="./styles/stammbaum.css">
   <script type="importmap">
@@ -14,60 +14,60 @@
 <body>
   <main>
     <header>
-      <a href="./index.html">Wortgeflecht</a>
-      <h1>Stammbaum <small id="app-version" hidden></small></h1>
-      <p>Erkunde die Verbindungen deiner Familie.</p>
+      <a href="./index.html" data-i18n="appName"></a>
+      <h1><span data-i18n="treeTitle"></span> <small id="app-version" hidden></small></h1>
+      <p data-i18n="introduction"></p>
     </header>
     <div class="layout">
       <aside>
         <div class="sidebar-head">
-          <label for="gedcom">GEDCOM-Datei</label>
-          <button id="search" type="button" aria-label="Person suchen" title="Person suchen"
+          <label for="gedcom" data-i18n="fileLabel"></label>
+          <button id="search" type="button" data-i18n-label="search" data-i18n-title="search"
             aria-haspopup="dialog" aria-controls="picker" disabled>
             <span class="search-icon" aria-hidden="true"></span>
           </button>
         </div>
         <input id="gedcom" type="file" accept=".ged,.gedcom">
-        <p class="muted">Die Datei bleibt in diesem Browser.</p>
-        <p id="status" role="status">Lade gespeicherten Stammbaum …</p>
+        <p class="muted" data-i18n="filePrivacy"></p>
+        <p id="status" role="status" data-i18n="loading"></p>
         <div id="tools" hidden>
           <div class="actions">
-            <button id="remove">Import löschen</button>
+            <button id="remove" data-i18n="deleteImport"></button>
           </div>
           <fieldset id="generations" hidden>
-            <legend>Generationen je Richtung</legend>
+            <legend data-i18n="generations"></legend>
             <div class="actions">
               <button type="button" value="1" aria-pressed="true">1</button>
               <button type="button" value="2" aria-pressed="false">2</button>
               <button type="button" value="3" aria-pressed="false">3</button>
               <button type="button" value="4" aria-pressed="false">4</button>
-              <button type="button" value="all" aria-pressed="false">Alle</button>
+              <button type="button" value="all" aria-pressed="false" data-i18n="all"></button>
             </div>
           </fieldset>
-          <button id="dates" type="button" aria-pressed="false" hidden>Lebensdaten</button>
-          <nav class="path" aria-label="Erkundungspfad">
-            <h2>Erkundungspfad</h2>
+          <button id="dates" type="button" aria-pressed="false" hidden data-i18n="lifeDates"></button>
+          <nav class="path" data-i18n-label="path">
+            <h2 data-i18n="path"></h2>
             <ol id="person-path"></ol>
           </nav>
-          <section id="person" aria-label="Person und Verwandte"></section>
+          <section id="person" data-i18n-label="personAndRelatives"></section>
         </div>
       </aside>
-      <section class="board" aria-label="Stammbaum-Ansicht">
+      <section class="board" data-i18n-label="treeView">
         <div id="view"></div>
-        <p id="hint">Wähle eine GEDCOM-Datei, um den Stammbaum zu öffnen.</p>
+        <p id="hint" data-i18n="chooseFile"></p>
       </section>
     </div>
   </main>
 
   <dialog id="picker" aria-labelledby="picker-title">
-    <h2 id="picker-title">Person suchen</h2>
-    <label for="query">Vor- oder Nachname</label>
+    <h2 id="picker-title" data-i18n="search"></h2>
+    <label for="query" data-i18n="searchName"></label>
     <input id="query" type="search" autocomplete="off" autofocus>
-    <ul id="results" aria-label="Suchergebnisse"></ul>
+    <ul id="results" data-i18n-label="searchResults"></ul>
     <p id="result-status" role="status"></p>
     <div class="actions">
-      <button id="start" class="primary">Oben anfangen</button>
-      <button id="close">Schließen</button>
+      <button id="start" class="primary" data-i18n="start"></button>
+      <button id="close" data-i18n="close"></button>
     </div>
   </dialog>
 </body>

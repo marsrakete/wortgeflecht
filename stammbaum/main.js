@@ -1,10 +1,22 @@
 import "../version.js";
 import { parseGedcom, findStart, searchName, generationRows, connectedGenerationRows, lifeDates } from "./gedcom.js";
 import { accessImport } from "./storage.js";
+import { locale, messages } from "./i18n.js";
+
+document.documentElement.lang = locale;
+for (const node of document.querySelectorAll("[data-i18n]")) {
+  node.textContent = messages[node.dataset.i18n];
+}
+for (const node of document.querySelectorAll("[data-i18n-label]")) {
+  node.setAttribute("aria-label", messages[node.dataset.i18nLabel]);
+}
+for (const node of document.querySelectorAll("[data-i18n-title]")) {
+  node.title = messages[node.dataset.i18nTitle];
+}
 
 const byId = id => document.getElementById(id);
 const version = byId("app-version");
-version.textContent = `v${globalThis.APP_VERSION_INFO.appVersion}`;
+version.textContent = messages.version(globalThis.APP_VERSION_INFO.appVersion);
 version.hidden = false;
 
 const fileInput = byId("gedcom");
@@ -21,11 +33,8 @@ const datesButton = byId("dates");
 const view = byId("view");
 const generationControls = byId("generations");
 const generationButtons = [...generationControls.querySelectorAll("button")];
-const relations = [
-  ["parents", "Eltern"],
-  ["partners", "Partner"],
-  ["children", "Kinder"],
-];
+const relations = ["parents", "partners", "children"];
+const searchLimit = 50;
 let tree, graph, focusedPerson;
 let depth = "1";
 let path = [];
@@ -47,7 +56,7 @@ function element(tag, text) {
 
 function personButton(person, onSelect) {
   const dates = lifeDates(person);
-  const button = element("button", dates ? `${person.name} · ${dates}` : person.name);
+  const button = element("button", dates ? [person.name, dates].join(messages.separator) : person.name);
   button.addEventListener("click", () => onSelect(person));
   return button;
 }
@@ -102,10 +111,10 @@ function select(person, moveFocus = false) {
   const dates = lifeDates(person);
   if (dates) details.append(element("p", dates));
 
-  const groups = Object.fromEntries(relations.map(([key]) => [
+  const groups = Object.fromEntries(relations.map(key => [
     key, [...person[key]].map(id => tree.people.get(id)),
   ]));
-  for (const [key, label] of relations) {
+  for (const key of relations) {
     if (!groups[key].length) continue;
     const list = element("ul", "");
     for (const relative of groups[key]) {
@@ -113,12 +122,12 @@ function select(person, moveFocus = false) {
       item.append(personButton(relative, next => select(next, true)));
       list.append(item);
     }
-    details.append(element("h3", label), list);
+    details.append(element("h3", messages[key]), list);
   }
   renderGraph();
   hint.textContent = graphUnavailable
-    ? "3D ist in diesem Browser nicht verfügbar. Die Verwandtenliste bleibt nutzbar."
-    : "Personen ziehen zum Verschieben · Hintergrund ziehen zum Drehen · Scrollen zum Zoomen";
+    ? messages.graphUnavailable
+    : messages.graphControls;
   if (moveFocus) heading.focus({ preventScroll: true });
 }
 
@@ -130,13 +139,13 @@ function renderSearch() {
     ),
   ) : [];
   results.replaceChildren();
-  for (const person of matches.slice(0, 50)) {
+  for (const person of matches.slice(0, searchLimit)) {
     const item = element("li", "");
     item.append(personButton(person, choose));
     results.append(item);
   }
   byId("result-status").textContent = terms.length
-    ? `${matches.length} Treffer${matches.length > 50 ? " · die ersten 50 werden angezeigt" : ""}`
+    ? messages.resultCount(matches.length, searchLimit)
     : "";
   return matches;
 }
@@ -166,8 +175,8 @@ async function showTree(data, filename, saved = true) {
       graphUnavailable = true;
     }
   }
-  status.textContent = `${filename} · ${tree.people.size} Personen · ${tree.familyCount} Familien`
-    + (saved ? "" : " · Speichern fehlgeschlagen. Der Import ist bis zum Schließen dieser Seite verfügbar.");
+  const summary = messages.importSummary(filename, tree.people.size, tree.familyCount);
+  status.textContent = saved ? summary : [summary, messages.saveFailed].join(messages.separator);
   byId("tools").hidden = false;
   searchButton.disabled = false;
   datesButton.hidden = generationControls.hidden = !graph;
@@ -206,7 +215,7 @@ fileInput.addEventListener("change", async () => {
     }
     await showTree(parsed, file.name, saved);
   } catch (error) {
-    status.textContent = `Import fehlgeschlagen. ${error.message}`;
+    status.textContent = messages.importFailed(error.message);
   } finally {
     fileInput.value = "";
     setBusy(false);
@@ -226,10 +235,10 @@ remove.addEventListener("click", async () => {
     results.replaceChildren();
     byId("tools").hidden = true;
     searchButton.disabled = true;
-    hint.textContent = "Wähle eine GEDCOM-Datei, um den Stammbaum zu öffnen.";
-    status.textContent = "Import gelöscht.";
+    hint.textContent = messages.chooseFile;
+    status.textContent = messages.importDeleted;
   } catch {
-    status.textContent = "Der gespeicherte Import konnte nicht gelöscht werden.";
+    status.textContent = messages.deleteFailed;
   } finally {
     setBusy(false);
     if (!tree) fileInput.focus();
@@ -240,9 +249,9 @@ setBusy(true);
 try {
   const saved = await accessImport("readonly", store => store.get("current"));
   if (saved) await showTree(parseGedcom(saved.bytes), saved.filename);
-  else status.textContent = "Noch kein Stammbaum importiert.";
+  else status.textContent = messages.noImport;
 } catch {
-  status.textContent = "Der gespeicherte Stammbaum konnte nicht geladen werden.";
+  status.textContent = messages.loadFailed;
 } finally {
   setBusy(false);
 }

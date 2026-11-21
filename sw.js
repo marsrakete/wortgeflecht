@@ -12,6 +12,7 @@ const APP_SHELL = [
   "./styles/stammbaum.css",
   "./stammbaum/main.js",
   "./stammbaum/gedcom.js",
+  "./stammbaum/i18n.js",
   "./stammbaum/storage.js",
   "./stammbaum/graph.js",
   "./styles/word-network.css",
