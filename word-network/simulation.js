@@ -42,6 +42,14 @@ export function stepSimulation(graph, elapsed) {
         b.position[1] - a.position[1],
         b.position[2] - a.position[2],
       ];
+      if (edge.restOffset) {
+        for (let axis = 0; axis < 3; axis++) {
+          const force = settings.spring * (delta[axis] - edge.restOffset[axis]);
+          forces[a.id][axis] += force;
+          forces[b.id][axis] -= force;
+        }
+        continue;
+      }
       const distance = Math.hypot(...delta);
       if (distance < 1e-8) {
         continue;

@@ -25,15 +25,12 @@ export function createGraph(view) {
   labels.domElement.classList.add("labels");
   view.append(labels.domElement);
 
-  const geometry = new THREE.SphereGeometry(0.23, 20, 12);
   const links = new THREE.CylinderGeometry(0.035, 0.035, 1, 8);
   const up = new THREE.Vector3(0, 1, 0);
   const group = new THREE.Group();
   scene.add(group);
 
   const graph = { nodes: [], edges: [] };
-  const raycaster = new THREE.Raycaster();
-  const pointer = new THREE.Vector2();
   const direction = new THREE.Vector3();
   let activate;
   let moving = false;
@@ -41,27 +38,20 @@ export function createGraph(view) {
   const interaction = createInteraction({
     view, camera, controls,
     getGraph: () => graph,
-    onGrab: () => { moving = true; },
-    onActivate: node => activate?.(node),
-    pickElement(event) {
-      const button = event.target.closest("[data-node]");
-      if (button || event.target !== renderer.domElement || !graph.nodes.length) return button;
-      const bounds = view.getBoundingClientRect();
-      pointer.set(
-        2 * (event.clientX - bounds.left) / bounds.width - 1,
-        1 - 2 * (event.clientY - bounds.top) / bounds.height,
-      );
-      raycaster.setFromCamera(pointer, camera);
-      const hit = raycaster.intersectObjects(graph.nodes.map(node => node.mesh), false)[0];
-      return hit?.object.userData.button;
+    onGrab(node) {
+      for (const other of graph.nodes) {
+        if (other !== node) other.pinned = false;
+      }
+      moving = true;
     },
+    onActivate: node => activate?.(node),
   });
 
   function syncScene() {
-    for (const { mesh, position } of graph.nodes) mesh.position.fromArray(position);
+    for (const { label, position } of graph.nodes) label.position.fromArray(position);
     for (const { source, target, link } of graph.edges) {
-      const from = graph.nodes[source].mesh.position;
-      const to = graph.nodes[target].mesh.position;
+      const from = graph.nodes[source].label.position;
+      const to = graph.nodes[target].label.position;
       direction.subVectors(to, from);
       link.position.copy(from).lerp(to, 0.5);
       link.scale.y = direction.length();
@@ -70,7 +60,13 @@ export function createGraph(view) {
   }
 
   function fit() {
-    fitCameraToObjects(camera, controls, group.children);
+    if (graph.edges.length) {
+      fitCameraToObjects(camera, controls, group.children);
+    } else if (graph.nodes.length === 1) {
+      controls.target.copy(graph.nodes[0].label.position);
+      camera.position.copy(controls.target).add(new THREE.Vector3(2, 2, 16));
+      controls.update();
+    }
     camera.near = 0.05;
     camera.updateProjectionMatrix();
   }
@@ -81,7 +77,6 @@ export function createGraph(view) {
     moving = false;
     previousTime = undefined;
     for (const object of [...group.children]) {
-      object.clear();
       group.remove(object);
       object.material?.dispose();
     }
@@ -99,7 +94,8 @@ export function createGraph(view) {
     function connect(from, to, color) {
       const link = new THREE.Mesh(links, new THREE.MeshBasicMaterial({ color }));
       graph.edges.push({
-        source: from.id, target: to.id, length: from.mesh.position.distanceTo(to.mesh.position), link,
+        source: from.id, target: to.id, link,
+        restOffset: to.origin.map((coordinate, axis) => coordinate - from.origin[axis]),
       });
       group.add(link);
     }
@@ -107,23 +103,20 @@ export function createGraph(view) {
     function addNode(relative, position, relation) {
       if (nodes.has(relative.id)) return;
       const color = colors[relation];
-      const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
-        color, emissive: color, emissiveIntensity: 0.42,
-      }));
-      mesh.position.copy(position);
-      group.add(mesh);
-
       const button = document.createElement("button");
       button.className = "node";
+      const label = new CSS2DObject(button);
+      label.position.copy(position);
+      group.add(label);
+
       const origin = position.toArray();
       const node = {
-        id: graph.nodes.length, relative, mesh, origin, position: [...origin],
+        id: graph.nodes.length, relative, label, origin, position: [...origin],
         pinned: false, velocity: [0, 0, 0],
       };
       nodes.set(relative.id, node);
       graph.nodes.push(node);
       button.dataset.node = node.id;
-      mesh.userData.button = button;
       button.style.setProperty("--node-color", color);
       button.textContent = relative.name;
       const relationship = { parents: "Elternteil", partners: "Partner", children: "Kind" }[relation];
@@ -135,10 +128,6 @@ export function createGraph(view) {
       } else {
         button.setAttribute("aria-current", "true");
       }
-      const label = new CSS2DObject(button);
-      label.position.y = relation === "parents" ? 0.5 : -0.5;
-      mesh.add(label);
-
     }
 
     addNode(person, origin, "focus");

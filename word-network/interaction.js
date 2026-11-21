@@ -13,14 +13,13 @@ export function createInteraction({
   getGraph,
   onGrab,
   onActivate,
-  pickElement = event => event.target.closest("[data-node]"),
 }) {
   const raycaster = new THREE.Raycaster(),
     pointer = new THREE.Vector2(),
     dragPlane = new THREE.Plane();
   const offset = new THREE.Vector3();
   let active = null;
-  view.addEventListener("pointerdown", start, Boolean(onActivate));
+  view.addEventListener("pointerdown", start);
   view.addEventListener("pointermove", move);
   view.addEventListener("pointerup", end);
   view.addEventListener("pointercancel", end);
@@ -40,7 +39,7 @@ export function createInteraction({
 
   /** Beginnt die Knotenbewegung und pausiert die Kamerasteuerung. @param {PointerEvent} event Zeigerereignis. @returns {void} Kein Rückgabewert. */
   function start(event) {
-    const element = pickElement(event);
+    const element = event.target.closest("[data-node]");
     if (!element || active || event.button !== 0) {
       return;
     }
@@ -48,7 +47,7 @@ export function createInteraction({
     if (!node) {
       return;
     }
-    onGrab();
+    if (!onActivate) onGrab(node);
     controls.enabled = false;
     const position = new THREE.Vector3(...node.position);
     dragPlane.setFromNormalAndCoplanarPoint(
@@ -76,6 +75,7 @@ export function createInteraction({
     }
     if (onActivate && !active.moved &&
       Math.hypot(event.clientX - active.x, event.clientY - active.y) < 5) return;
+    if (onActivate && !active.moved) onGrab(active.node);
     active.moved = true;
     const point = intersection(event);
     if (point) {
@@ -120,7 +120,7 @@ export function createInteraction({
     if (!node) {
       return;
     }
-    onGrab();
+    onGrab(node);
     const direction = new THREE.Vector3();
     if (event.key === "ArrowLeft") {
       direction.x = -0.4;
