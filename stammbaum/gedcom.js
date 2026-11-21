@@ -81,3 +81,29 @@ export function searchName(value) {
   return value.toLocaleLowerCase("de").replaceAll("ß", "ss")
     .normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
 }
+
+export function generationRows(person, people, depth) {
+  const seen = new Set([person.id]);
+  const rows = [];
+
+  for (const relation of ["parents", "children"]) {
+    let previous = [person];
+    for (let generation = 1; generation <= depth && previous.length; generation++) {
+      const members = [];
+      for (const relative of previous) {
+        for (const id of relative[relation]) {
+          const member = people.get(id);
+          if (!member || seen.has(id)) continue;
+          seen.add(id);
+          members.push(member);
+        }
+      }
+      if (members.length) rows.push({ relation, generation, members });
+      previous = members;
+    }
+  }
+
+  const partners = [...person.partners].filter(id => !seen.has(id)).map(id => people.get(id));
+  if (partners.length) rows.push({ relation: "partners", generation: 0, members: partners });
+  return rows;
+}

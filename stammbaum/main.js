@@ -1,4 +1,4 @@
-import { parseGedcom, findStart, searchName } from "./gedcom.js";
+import { parseGedcom, findStart, searchName, generationRows } from "./gedcom.js";
 import { accessImport } from "./storage.js";
 
 const byId = id => document.getElementById(id);
@@ -11,12 +11,15 @@ const details = byId("person");
 const pathList = byId("person-path");
 const hint = byId("hint");
 const remove = byId("remove");
+const generationControls = byId("generations");
+const generationButtons = [...generationControls.querySelectorAll("button")];
 const relations = [
   ["parents", "Eltern"],
   ["partners", "Partner"],
   ["children", "Kinder"],
 ];
-let tree, graph;
+let tree, graph, focusedPerson;
+let depth = 1;
 let path = [];
 let graphUnavailable = false;
 
@@ -38,7 +41,27 @@ function personButton(person, onSelect) {
   return button;
 }
 
+function renderGraph() {
+  graph?.show(focusedPerson, generationRows(focusedPerson, tree.people, depth), next => select(next, true));
+}
+
+function setDepth(value) {
+  depth = value;
+  for (const button of generationButtons) {
+    button.setAttribute("aria-pressed", String(Number(button.value) === depth));
+  }
+}
+
+for (const button of generationButtons) {
+  button.addEventListener("click", () => {
+    const requested = Number(button.value);
+    setDepth(requested === depth ? 1 : requested);
+    renderGraph();
+  });
+}
+
 function select(person, moveFocus = false) {
+  focusedPerson = person;
   const previous = path.findIndex(entry => entry.id === person.id);
   if (previous === -1) path.push(person);
   else path = path.slice(0, previous + 1);
@@ -76,7 +99,7 @@ function select(person, moveFocus = false) {
     }
     details.append(element("h3", label), list);
   }
-  graph?.show(person, groups, next => select(next, true));
+  renderGraph();
   hint.textContent = graphUnavailable
     ? "3D ist in diesem Browser nicht verfügbar. Die Verwandtenliste bleibt nutzbar."
     : "Personen ziehen zum Verschieben · Hintergrund ziehen zum Drehen · Scrollen zum Zoomen";
@@ -117,6 +140,7 @@ function openSearch() {
 
 async function showTree(data, filename, saved = true) {
   tree = data;
+  setDepth(1);
   path = [];
   if (!graph && !graphUnavailable) {
     try {
@@ -129,6 +153,7 @@ async function showTree(data, filename, saved = true) {
   status.textContent = `${filename} · ${tree.people.size} Personen · ${tree.familyCount} Familien`
     + (saved ? "" : " · Speichern fehlgeschlagen. Der Import ist bis zum Schließen dieser Seite verfügbar.");
   byId("tools").hidden = false;
+  generationControls.hidden = !graph;
   select(findStart(tree.people));
   openSearch();
 }
@@ -175,7 +200,7 @@ remove.addEventListener("click", async () => {
   setBusy(true);
   try {
     await accessImport("readwrite", store => store.delete("current"));
-    tree = undefined;
+    tree = focusedPerson = undefined;
     path = [];
     pathList.replaceChildren();
     graph?.clear();

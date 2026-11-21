@@ -25,13 +25,10 @@ export function createGraph(view) {
   labels.domElement.classList.add("labels");
   view.append(labels.domElement);
 
-  const links = new THREE.CylinderGeometry(0.035, 0.035, 1, 8);
-  const up = new THREE.Vector3(0, 1, 0);
   const group = new THREE.Group();
   scene.add(group);
 
   const graph = { nodes: [], edges: [] };
-  const direction = new THREE.Vector3();
   let activate;
   let moving = false;
   let previousTime;
@@ -50,17 +47,17 @@ export function createGraph(view) {
   function syncScene() {
     for (const { label, position } of graph.nodes) label.position.fromArray(position);
     for (const { source, target, link } of graph.edges) {
-      const from = graph.nodes[source].label.position;
-      const to = graph.nodes[target].label.position;
-      direction.subVectors(to, from);
-      link.position.copy(from).lerp(to, 0.5);
-      link.scale.y = direction.length();
-      link.quaternion.setFromUnitVectors(up, direction.normalize());
+      const points = link.geometry.getAttribute("position");
+      for (const [index, id] of [source, target].entries()) {
+        points.setXYZ(index, ...graph.nodes[id].position);
+      }
+      points.needsUpdate = true;
     }
   }
 
   function fit() {
     if (graph.edges.length) {
+      for (const { link } of graph.edges) link.geometry.computeBoundingBox();
       fitCameraToObjects(camera, controls, group.children);
     } else if (graph.nodes.length === 1) {
       controls.target.copy(graph.nodes[0].label.position);
@@ -78,11 +75,12 @@ export function createGraph(view) {
     previousTime = undefined;
     for (const object of [...group.children]) {
       group.remove(object);
+      object.geometry?.dispose();
       object.material?.dispose();
     }
   }
 
-  function show(person, relatives, onSelect) {
+  function show(person, rows, onSelect) {
     clear();
     const origin = new THREE.Vector3();
     const nodes = new Map();
@@ -92,7 +90,14 @@ export function createGraph(view) {
     };
 
     function connect(from, to, color) {
-      const link = new THREE.Mesh(links, new THREE.MeshBasicMaterial({ color }));
+      const geometry = new THREE.BufferGeometry();
+      const points = new THREE.BufferAttribute(new Float32Array(6), 3);
+      points.setUsage(THREE.DynamicDrawUsage);
+      geometry.setAttribute("position", points);
+      const link = new THREE.Line(geometry, new THREE.LineBasicMaterial({
+        color, transparent: true, opacity: 0.8,
+      }));
+      link.frustumCulled = false;
       graph.edges.push({
         source: from.id, target: to.id, link,
         restOffset: to.origin.map((coordinate, axis) => coordinate - from.origin[axis]),
@@ -100,7 +105,7 @@ export function createGraph(view) {
       group.add(link);
     }
 
-    function addNode(relative, position, relation) {
+    function addNode(relative, position, relation, generation = 0) {
       if (nodes.has(relative.id)) return;
       const color = colors[relation];
       const button = document.createElement("button");
@@ -119,7 +124,11 @@ export function createGraph(view) {
       button.dataset.node = node.id;
       button.style.setProperty("--node-color", color);
       button.textContent = relative.name;
-      const relationship = { parents: "Elternteil", partners: "Partner", children: "Kind" }[relation];
+      const relationship = {
+        parents: generation === 1 ? "Elternteil" : `Vorfahren, Ebene ${generation}`,
+        partners: "Partner",
+        children: generation === 1 ? "Kind" : `Nachkommen, Ebene ${generation}`,
+      }[relation];
       if (relationship) {
         button.setAttribute("aria-label", `${relative.name}, ${relationship}`);
         button.addEventListener("click", event => {
@@ -131,27 +140,31 @@ export function createGraph(view) {
     }
 
     addNode(person, origin, "focus");
-    for (const [relation, row] of Object.entries(relatives)) {
-      row.forEach((relative, index) => {
-        const column = index % 5;
-        const width = Math.min(5, row.length - Math.floor(index / 5) * 5);
-        const offset = column - (width - 1) / 2;
-        const tier = Math.floor(index / 5);
+    const height = { parents: 0, children: 0 };
+    for (const { relation, generation, members } of rows) {
+      const columns = Math.min(8, Math.max(5, Math.ceil(Math.sqrt(members.length * 2))));
+      const sign = relation === "parents" ? 1 : -1;
+      const base = (height[relation] ?? 0) + 2.5;
+      members.forEach((relative, index) => {
+        const tier = Math.floor(index / columns);
+        const width = Math.min(columns, members.length - tier * columns);
+        const offset = index % columns - (width - 1) / 2;
         const position = relation === "partners"
           ? new THREE.Vector3((index % 2 ? -1 : 1) * spacing * (1 + Math.floor(index / 2)), 0, -0.85)
-          : new THREE.Vector3(offset * spacing, (relation === "parents" ? 1 : -1) * (2.5 + tier * 1.6), -Math.abs(offset) * 0.55);
-        addNode(relative, position, relation);
+          : new THREE.Vector3(offset * spacing, sign * (base + tier * 1.6), -Math.abs(offset) * 0.45);
+        addNode(relative, position, relation, generation);
       });
+      height[relation] = base + (Math.ceil(members.length / columns) - 1) * 1.6;
     }
     for (const node of nodes.values()) {
       for (const childId of node.relative.children) {
         const child = nodes.get(childId);
         if (child) connect(node, child, colors.children);
       }
-    }
-    for (const partner of relatives.partners) {
-      const node = nodes.get(partner.id);
-      if (node && node.relative.id !== person.id) connect(nodes.get(person.id), node, colors.partners);
+      for (const partnerId of node.relative.partners) {
+        const partner = nodes.get(partnerId);
+        if (partner && node.id < partner.id) connect(node, partner, colors.partners);
+      }
     }
     syncScene();
     fit();
