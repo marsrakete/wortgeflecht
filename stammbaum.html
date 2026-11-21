@@ -32,6 +32,7 @@
         <p id="status" role="status" data-i18n="loading"></p>
         <div id="tools" hidden>
           <div class="actions">
+            <button id="timeline-open" type="button" data-i18n="timeline"></button>
             <button id="remove" data-i18n="deleteImport"></button>
           </div>
           <fieldset id="generations" hidden>
@@ -68,6 +69,30 @@
     <div class="actions">
       <button id="start" class="primary" data-i18n="start"></button>
       <button id="close" data-i18n="close"></button>
+    </div>
+  </dialog>
+  <dialog id="timeline" aria-labelledby="timeline-title">
+    <div class="timeline-header">
+      <h2 id="timeline-title" data-i18n="timeline"></h2>
+      <button id="timeline-close" type="button" data-i18n="close"></button>
+    </div>
+    <div class="timeline-controls">
+      <div class="actions">
+        <button type="button" data-timeline-mode="lives" aria-pressed="true" data-i18n="timelineLives"></button>
+        <button type="button" data-timeline-mode="events" aria-pressed="false" data-i18n="timelineEvents"></button>
+      </div>
+      <div class="timeline-navigation">
+        <button id="timeline-previous" type="button" data-i18n="timelineEarlier"></button>
+        <output for="timeline-years" aria-live="polite"></output>
+        <button id="timeline-next" type="button" data-i18n="timelineLater"></button>
+      </div>
+      <input id="timeline-years" type="range" data-i18n-label="timelineRange">
+      <p class="muted" data-i18n="timelineHelp"></p>
+    </div>
+    <div class="timeline-window">
+      <div class="timeline-axis" aria-hidden="true"></div>
+      <ol class="timeline-list"></ol>
+      <p class="timeline-empty" role="status" hidden></p>
     </div>
   </dialog>
 </body>

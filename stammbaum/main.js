@@ -1,6 +1,7 @@
 import "../version.js";
 import { parseGedcom, findStart, searchName, generationRows, connectedGenerationRows, lifeDates } from "./gedcom.js";
 import { accessImport } from "./storage.js";
+import { createTimeline } from "./timeline.js";
 import { locale, messages } from "./i18n.js";
 
 document.documentElement.lang = locale;
@@ -185,6 +186,8 @@ async function showTree(data, filename, saved = true) {
 }
 
 searchButton.addEventListener("click", openSearch);
+const timeline = createTimeline(byId("timeline"), person => select(person, true));
+byId("timeline-open").addEventListener("click", () => timeline.open(tree.people.values(), focusedPerson));
 byId("close").addEventListener("click", () => picker.close());
 byId("start").addEventListener("click", () => choose(findStart(tree.people), true));
 query.addEventListener("input", renderSearch);

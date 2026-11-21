@@ -1,4 +1,13 @@
 const de = {
+  timeline: "Zeitachse",
+  timelineLives: "Lebenszeiten",
+  timelineEvents: "Ereignisse",
+  timelineEarlier: "Früher",
+  timelineLater: "Später",
+  timelineRange: "Sichtbarer Zeitraum",
+  timelineHelp: "Seitlich wischen oder den Regler bewegen. Wähle einen Namen, um die Person im Stammbaum zu öffnen.",
+  timelineEmptyWindow: "Keine Einträge in diesem Zeitraum.",
+  timelineEmptyFile: "Diese Datei enthält keine Geburts- oder Sterbejahre für die Zeitachse.",
   pageTitle: "Stammbaum · Wortgeflecht",
   appName: "Wortgeflecht",
   treeTitle: "Stammbaum",
@@ -49,6 +58,15 @@ const de = {
 };
 
 const en = {
+  timeline: "Timeline",
+  timelineLives: "Lifespans",
+  timelineEvents: "Events",
+  timelineEarlier: "Earlier",
+  timelineLater: "Later",
+  timelineRange: "Visible date range",
+  timelineHelp: "Swipe sideways or move the slider. Select a name to open the person in the family tree.",
+  timelineEmptyWindow: "No entries in this period.",
+  timelineEmptyFile: "This file contains no birth or death years for the timeline.",
   pageTitle: "Family Tree · Wortgeflecht",
   appName: "Wortgeflecht",
   treeTitle: "Family Tree",
@@ -100,6 +118,15 @@ const en = {
 };
 
 const fr = {
+  timeline: "Frise chronologique",
+  timelineLives: "Durées de vie",
+  timelineEvents: "Événements",
+  timelineEarlier: "Plus tôt",
+  timelineLater: "Plus tard",
+  timelineRange: "Période affichée",
+  timelineHelp: "Balayez horizontalement ou déplacez le curseur. Sélectionnez un nom pour ouvrir la personne dans l’arbre.",
+  timelineEmptyWindow: "Aucune entrée pour cette période.",
+  timelineEmptyFile: "Ce fichier ne contient aucune année de naissance ou de décès pour la frise.",
   pageTitle: "Arbre généalogique · Wortgeflecht",
   appName: "Wortgeflecht",
   treeTitle: "Arbre généalogique",
