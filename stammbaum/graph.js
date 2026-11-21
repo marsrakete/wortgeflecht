@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import { createViewport } from "../share/viewport.js";
+import { createInteraction } from "../word-network/interaction.js";
+import { stepSimulation } from "../word-network/simulation.js";
 import { fitCameraToObjects } from "../share/camera.js";
 
 const colors = { focus: "#79ded1", parents: "#b6a0ff", partners: "#f6bd77", children: "#8bbfff" };
@@ -29,6 +31,44 @@ export function createGraph(view) {
   const group = new THREE.Group();
   scene.add(group);
 
+  const graph = { nodes: [], edges: [] };
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  const direction = new THREE.Vector3();
+  let activate;
+  let moving = false;
+  let previousTime;
+  const interaction = createInteraction({
+    view, camera, controls,
+    getGraph: () => graph,
+    onGrab: () => { moving = true; },
+    onActivate: node => activate?.(node),
+    pickElement(event) {
+      const button = event.target.closest("[data-node]");
+      if (button || event.target !== renderer.domElement || !graph.nodes.length) return button;
+      const bounds = view.getBoundingClientRect();
+      pointer.set(
+        2 * (event.clientX - bounds.left) / bounds.width - 1,
+        1 - 2 * (event.clientY - bounds.top) / bounds.height,
+      );
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(graph.nodes.map(node => node.mesh), false)[0];
+      return hit?.object.userData.button;
+    },
+  });
+
+  function syncScene() {
+    for (const { mesh, position } of graph.nodes) mesh.position.fromArray(position);
+    for (const { source, target, link } of graph.edges) {
+      const from = graph.nodes[source].mesh.position;
+      const to = graph.nodes[target].mesh.position;
+      direction.subVectors(to, from);
+      link.position.copy(from).lerp(to, 0.5);
+      link.scale.y = direction.length();
+      link.quaternion.setFromUnitVectors(up, direction.normalize());
+    }
+  }
+
   function fit() {
     fitCameraToObjects(camera, controls, group.children);
     camera.near = 0.05;
@@ -36,7 +76,12 @@ export function createGraph(view) {
   }
 
   function clear() {
+    interaction.cancel();
+    graph.nodes.length = graph.edges.length = 0;
+    moving = false;
+    previousTime = undefined;
     for (const object of [...group.children]) {
+      object.clear();
       group.remove(object);
       object.material?.dispose();
     }
@@ -47,18 +92,20 @@ export function createGraph(view) {
     const origin = new THREE.Vector3();
     const nodes = new Map();
 
+    activate = node => {
+      if (node.relative !== person) onSelect(node.relative);
+    };
+
     function connect(from, to, color) {
-      const direction = new THREE.Vector3().subVectors(to, from);
       const link = new THREE.Mesh(links, new THREE.MeshBasicMaterial({ color }));
-      link.position.copy(from).lerp(to, 0.5);
-      link.scale.y = direction.length();
-      link.quaternion.setFromUnitVectors(up, direction.normalize());
+      graph.edges.push({
+        source: from.id, target: to.id, length: from.mesh.position.distanceTo(to.mesh.position), link,
+      });
       group.add(link);
     }
 
     function addNode(relative, position, relation) {
       if (nodes.has(relative.id)) return;
-      nodes.set(relative.id, { relative, position });
       const color = colors[relation];
       const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
         color, emissive: color, emissiveIntensity: 0.42,
@@ -68,19 +115,29 @@ export function createGraph(view) {
 
       const button = document.createElement("button");
       button.className = "node";
+      const origin = position.toArray();
+      const node = {
+        id: graph.nodes.length, relative, mesh, origin, position: [...origin],
+        pinned: false, velocity: [0, 0, 0],
+      };
+      nodes.set(relative.id, node);
+      graph.nodes.push(node);
+      button.dataset.node = node.id;
+      mesh.userData.button = button;
       button.style.setProperty("--node-color", color);
       button.textContent = relative.name;
       const relationship = { parents: "Elternteil", partners: "Partner", children: "Kind" }[relation];
       if (relationship) {
         button.setAttribute("aria-label", `${relative.name}, ${relationship}`);
-        button.addEventListener("click", () => onSelect(relative));
+        button.addEventListener("click", event => {
+          if (event.detail === 0) activate(node);
+        });
       } else {
         button.setAttribute("aria-current", "true");
-        button.disabled = true;
       }
       const label = new CSS2DObject(button);
-      label.position.copy(position).add(new THREE.Vector3(0, relation === "parents" ? 0.5 : -0.5, 0));
-      group.add(label);
+      label.position.y = relation === "parents" ? 0.5 : -0.5;
+      mesh.add(label);
 
     }
 
@@ -97,20 +154,26 @@ export function createGraph(view) {
         addNode(relative, position, relation);
       });
     }
-    for (const { relative, position } of nodes.values()) {
-      for (const childId of relative.children) {
+    for (const node of nodes.values()) {
+      for (const childId of node.relative.children) {
         const child = nodes.get(childId);
-        if (child) connect(position, child.position, colors.children);
+        if (child) connect(node, child, colors.children);
       }
     }
     for (const partner of relatives.partners) {
       const node = nodes.get(partner.id);
-      if (node && node.relative.id !== person.id) connect(origin, node.position, colors.partners);
+      if (node && node.relative.id !== person.id) connect(nodes.get(person.id), node, colors.partners);
     }
+    syncScene();
     fit();
   }
 
-  renderer.setAnimationLoop(() => {
+  renderer.setAnimationLoop(time => {
+    if (moving && previousTime !== undefined) {
+      stepSimulation(graph, (time - previousTime) / 1000);
+      syncScene();
+    }
+    previousTime = time;
     controls.update();
     renderer.render(scene, camera);
     labels.setSize(view.clientWidth, view.clientHeight);

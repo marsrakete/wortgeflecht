@@ -12,13 +12,15 @@ export function createInteraction({
   controls,
   getGraph,
   onGrab,
+  onActivate,
+  pickElement = event => event.target.closest("[data-node]"),
 }) {
   const raycaster = new THREE.Raycaster(),
     pointer = new THREE.Vector2(),
     dragPlane = new THREE.Plane();
   const offset = new THREE.Vector3();
   let active = null;
-  view.addEventListener("pointerdown", start);
+  view.addEventListener("pointerdown", start, Boolean(onActivate));
   view.addEventListener("pointermove", move);
   view.addEventListener("pointerup", end);
   view.addEventListener("pointercancel", end);
@@ -38,7 +40,7 @@ export function createInteraction({
 
   /** Beginnt die Knotenbewegung und pausiert die Kamerasteuerung. @param {PointerEvent} event Zeigerereignis. @returns {void} Kein Rückgabewert. */
   function start(event) {
-    const element = event.target.closest("[data-node]");
+    const element = pickElement(event);
     if (!element || active || event.button !== 0) {
       return;
     }
@@ -59,7 +61,7 @@ export function createInteraction({
       return;
     }
     offset.copy(position).sub(point);
-    active = { node, element, pointerId: event.pointerId };
+    active = { node, element, pointerId: event.pointerId, x: event.clientX, y: event.clientY, moved: false };
     element.classList.add("dragging");
     element.setPointerCapture(event.pointerId);
     element.focus({ preventScroll: true });
@@ -72,6 +74,9 @@ export function createInteraction({
     if (!active || event.pointerId !== active.pointerId) {
       return;
     }
+    if (onActivate && !active.moved &&
+      Math.hypot(event.clientX - active.x, event.clientY - active.y) < 5) return;
+    active.moved = true;
     const point = intersection(event);
     if (point) {
       pinNode(active.node, point.add(offset).toArray());
@@ -81,8 +86,11 @@ export function createInteraction({
 
   /** Beendet ausschließlich die passende Zeigerinteraktion. @param {PointerEvent} event Zeigerereignis. @returns {void} Kein Rückgabewert. */
   function end(event) {
+    if (event.type === "lostpointercapture" && event.target !== active?.element) return;
     if (active && active.pointerId === event.pointerId) {
+      const selected = event.type === "pointerup" && !active.moved ? active.node : null;
       cancel();
+      if (selected) onActivate?.(selected);
     }
   }
 

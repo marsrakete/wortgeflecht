@@ -79,7 +79,7 @@ function select(person, moveFocus = false) {
   graph?.show(person, groups, next => select(next, true));
   hint.textContent = graphUnavailable
     ? "3D ist in diesem Browser nicht verfügbar. Die Verwandtenliste bleibt nutzbar."
-    : "Ziehen zum Drehen · Scrollen oder Geste zum Zoomen";
+    : "Personen ziehen zum Verschieben · Hintergrund ziehen zum Drehen · Scrollen zum Zoomen";
   if (moveFocus) heading.focus({ preventScroll: true });
 }
 

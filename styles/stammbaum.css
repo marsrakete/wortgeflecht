@@ -41,8 +41,11 @@ button:hover, ::file-selector-button:hover { border-color: var(--accent); }
 #person li button, #results li button { width: 100%; text-align: left; overflow-wrap: anywhere; }
 .board { min-height: clamp(25rem, 68vh, 50rem); position: relative; overflow: hidden; background: #0c1528; }
 #view, #view canvas, .labels { position: absolute; inset: 0; }
+#view canvas { display: block; width: 100%; height: 100%; }
 .labels { pointer-events: none; }
 .node { pointer-events: auto; white-space: nowrap; padding: .3rem .55rem; font-size: .875rem; background: #10192cea; border-color: var(--node-color); }
+.node { cursor: grab; touch-action: none; user-select: none; }
+.node.dragging { cursor: grabbing; }
 .node[aria-current] { color: var(--accent); font-weight: 700; }
 #hint { position: absolute; inset: auto .8rem .5rem; margin: 0; text-align: center; color: var(--muted); pointer-events: none; }
 dialog { width: min(32rem, calc(100% - 2rem)); color: inherit; }
