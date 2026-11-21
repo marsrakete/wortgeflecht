@@ -1,11 +1,12 @@
 import * as THREE from "three";
+import { lifeDates } from "./gedcom.js";
 import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
 import { createViewport } from "../share/viewport.js";
 import { createInteraction } from "../word-network/interaction.js";
 import { stepSimulation } from "../word-network/simulation.js";
 import { fitCameraToObjects } from "../share/camera.js";
 
-const colors = { focus: "#79ded1", parents: "#b6a0ff", partners: "#f6bd77", children: "#8bbfff" };
+const colors = { focus: "#79ded1", parents: "#b6a0ff", partners: "#f6bd77", peers: "#f6bd77", children: "#8bbfff" };
 const spacing = 3.6;
 
 export function createGraph(view) {
@@ -80,7 +81,7 @@ export function createGraph(view) {
     }
   }
 
-  function show(person, rows, onSelect) {
+  function show(person, rows, onSelect, all) {
     clear();
     const origin = new THREE.Vector3();
     const nodes = new Map();
@@ -124,13 +125,20 @@ export function createGraph(view) {
       button.dataset.node = node.id;
       button.style.setProperty("--node-color", color);
       button.textContent = relative.name;
-      const relationship = {
+      const dates = lifeDates(relative);
+      if (dates) {
+        const label = document.createElement("span");
+        label.className = "node-dates";
+        label.textContent = dates;
+        button.append(label);
+      }
+      const relationship = all && relation !== "focus" ? "Familienmitglied" : {
         parents: generation === 1 ? "Elternteil" : `Vorfahren, Ebene ${generation}`,
         partners: "Partner",
         children: generation === 1 ? "Kind" : `Nachkommen, Ebene ${generation}`,
       }[relation];
       if (relationship) {
-        button.setAttribute("aria-label", `${relative.name}, ${relationship}`);
+        button.setAttribute("aria-description", relationship);
         button.addEventListener("click", event => {
           if (event.detail === 0) activate(node);
         });
@@ -143,6 +151,18 @@ export function createGraph(view) {
     const height = { parents: 0, children: 0 };
     for (const { relation, generation, members } of rows) {
       const columns = Math.min(8, Math.max(5, Math.ceil(Math.sqrt(members.length * 2))));
+      if (relation === "peers") {
+        const tiers = Math.ceil(members.length / columns);
+        members.forEach((relative, index) => {
+          const column = index % columns;
+          const tier = Math.floor(index / columns);
+          const x = spacing * (column % 2 ? -1 : 1) * (1 + Math.floor(column / 2));
+          const y = (tier - (tiers - 1) / 2) * 1.6;
+          addNode(relative, new THREE.Vector3(x, y, -0.85), relation);
+        });
+        height.parents = height.children = (tiers - 1) * 0.8;
+        continue;
+      }
       const sign = relation === "parents" ? 1 : -1;
       const base = (height[relation] ?? 0) + 2.5;
       members.forEach((relative, index) => {

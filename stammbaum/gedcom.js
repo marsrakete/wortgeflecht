@@ -107,3 +107,37 @@ export function generationRows(person, people, depth) {
   if (partners.length) rows.push({ relation: "partners", generation: 0, members: partners });
   return rows;
 }
+
+
+export function connectedGenerationRows(person, people) {
+  const levels = new Map([[person.id, 0]]);
+  const queue = [person];
+  const rows = new Map();
+
+  for (const relative of queue) {
+    const level = levels.get(relative.id);
+    const directions = [[relative.parents, 1], [relative.children, -1], [relative.partners, 0]];
+    for (const [ids, offset] of directions) {
+      for (const id of ids) {
+        const member = people.get(id);
+        if (!member || levels.has(id)) continue;
+        const next = level + offset;
+        levels.set(id, next);
+        queue.push(member);
+        if (!rows.has(next)) rows.set(next, []);
+        rows.get(next).push(member);
+      }
+    }
+  }
+
+  return [...rows].sort(([a], [b]) => Math.abs(a) - Math.abs(b)).map(([level, members]) => ({
+    relation: level === 0 ? "peers" : level > 0 ? "parents" : "children",
+    generation: Math.abs(level),
+    members,
+  }));
+}
+
+export function lifeDates(person) {
+  return [person.birth && `* ${person.birth}`, person.death && `† ${person.death}`]
+    .filter(Boolean).join(" · ");
+}

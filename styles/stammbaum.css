@@ -78,3 +78,8 @@ dialog::backdrop { background: #020611bb; }
 #generations legend { padding: 0; margin-bottom: .4rem; font-weight: 600; }
 #generations button { min-width: 2.4rem; }
 #generations button[aria-pressed="true"] { background: var(--accent); color: #10262b; border-color: var(--accent); }
+
+#dates { margin-top: .65rem; }
+#dates[aria-pressed="true"] { background: var(--accent); color: #10262b; border-color: var(--accent); }
+.node-dates { display: none; margin-top: .15rem; color: var(--muted); font-size: .78rem; font-weight: 400; }
+.show-dates .node-dates { display: block; }

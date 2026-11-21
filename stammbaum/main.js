@@ -1,4 +1,4 @@
-import { parseGedcom, findStart, searchName, generationRows } from "./gedcom.js";
+import { parseGedcom, findStart, searchName, generationRows, connectedGenerationRows, lifeDates } from "./gedcom.js";
 import { accessImport } from "./storage.js";
 
 const byId = id => document.getElementById(id);
@@ -11,6 +11,8 @@ const details = byId("person");
 const pathList = byId("person-path");
 const hint = byId("hint");
 const remove = byId("remove");
+const datesButton = byId("dates");
+const view = byId("view");
 const generationControls = byId("generations");
 const generationButtons = [...generationControls.querySelectorAll("button")];
 const relations = [
@@ -19,9 +21,17 @@ const relations = [
   ["children", "Kinder"],
 ];
 let tree, graph, focusedPerson;
-let depth = 1;
+let depth = "1";
 let path = [];
 let graphUnavailable = false;
+
+navigator.serviceWorker?.register(new URL("../sw.js", import.meta.url), { updateViaCache: "none" })
+  .catch(() => {});
+
+datesButton.addEventListener("click", () => {
+  const showDates = view.classList.toggle("show-dates");
+  datesButton.setAttribute("aria-pressed", String(showDates));
+});
 
 function element(tag, text) {
   const node = document.createElement(tag);
@@ -29,33 +39,33 @@ function element(tag, text) {
   return node;
 }
 
-function life(person) {
-  return [person.birth && `* ${person.birth}`, person.death && `† ${person.death}`]
-    .filter(Boolean).join(" · ");
-}
-
 function personButton(person, onSelect) {
-  const dates = life(person);
+  const dates = lifeDates(person);
   const button = element("button", dates ? `${person.name} · ${dates}` : person.name);
   button.addEventListener("click", () => onSelect(person));
   return button;
 }
 
 function renderGraph() {
-  graph?.show(focusedPerson, generationRows(focusedPerson, tree.people, depth), next => select(next, true));
+  if (!graph) return;
+  const all = depth === "all";
+  const rows = all
+    ? connectedGenerationRows(focusedPerson, tree.people)
+    : generationRows(focusedPerson, tree.people, Number(depth));
+  graph.show(focusedPerson, rows, next => select(next, true), all);
 }
 
 function setDepth(value) {
   depth = value;
   for (const button of generationButtons) {
-    button.setAttribute("aria-pressed", String(Number(button.value) === depth));
+    button.setAttribute("aria-pressed", String(button.value === depth));
   }
 }
 
 for (const button of generationButtons) {
   button.addEventListener("click", () => {
-    const requested = Number(button.value);
-    setDepth(requested === depth ? 1 : requested);
+    const requested = button.value;
+    setDepth(requested === depth ? "1" : requested);
     renderGraph();
   });
 }
@@ -83,7 +93,7 @@ function select(person, moveFocus = false) {
   const heading = element("h2", person.name);
   heading.tabIndex = -1;
   details.replaceChildren(heading);
-  const dates = life(person);
+  const dates = lifeDates(person);
   if (dates) details.append(element("p", dates));
 
   const groups = Object.fromEntries(relations.map(([key]) => [
@@ -140,12 +150,12 @@ function openSearch() {
 
 async function showTree(data, filename, saved = true) {
   tree = data;
-  setDepth(1);
+  setDepth("1");
   path = [];
   if (!graph && !graphUnavailable) {
     try {
       const { createGraph } = await import("./graph.js");
-      graph = createGraph(byId("view"));
+      graph = createGraph(view);
     } catch {
       graphUnavailable = true;
     }
@@ -153,7 +163,7 @@ async function showTree(data, filename, saved = true) {
   status.textContent = `${filename} · ${tree.people.size} Personen · ${tree.familyCount} Familien`
     + (saved ? "" : " · Speichern fehlgeschlagen. Der Import ist bis zum Schließen dieser Seite verfügbar.");
   byId("tools").hidden = false;
-  generationControls.hidden = !graph;
+  datesButton.hidden = generationControls.hidden = !graph;
   select(findStart(tree.people));
   openSearch();
 }

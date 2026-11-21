@@ -8,6 +8,12 @@ const APP_SHELL = [
   "./styles/denkraum.css",
   "./denkraum/main.js",
   "./version.js",
+  "./stammbaum.html",
+  "./styles/stammbaum.css",
+  "./stammbaum/main.js",
+  "./stammbaum/gedcom.js",
+  "./stammbaum/storage.js",
+  "./stammbaum/graph.js",
   "./styles/word-network.css",
   "./word-network/main.js",
   "./word-network/config.js",
@@ -33,7 +39,7 @@ const APP_SHELL = [
 
 /** Installiert den App-Shell-Cache für den ersten Offline-Aufruf. @param {ExtendableEvent} event Installationsereignis. @returns {void} Kein Rückgabewert. */
 function install(event) {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL.map(url => new Request(url, { cache: "reload" })))).then(() => self.skipWaiting()));
 }
 
 /** Aktiviert den aktuellen Cache und entfernt alte Versionen. @param {ExtendableEvent} event Aktivierungsereignis. @returns {void} Kein Rückgabewert. */
@@ -42,9 +48,45 @@ function activate(event) {
   event.waitUntil(self.clients.claim());
 }
 
+function isTreeResource(url) {
+  const scope = self.registration.scope;
+  if (!url.startsWith(scope)) return false;
+  const path = url.slice(scope.length).split(/[?#]/, 1)[0];
+  return path === "stammbaum.html" || path.startsWith("stammbaum/") || path === "styles/stammbaum.css";
+}
+
+async function fetchTreeResource(request) {
+  let response;
+  try {
+    response = await fetch(request, { cache: "reload" });
+  } catch (error) {
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    throw error;
+  }
+
+  if (response.ok) {
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    } catch {
+      // The server response is still usable if browser storage is unavailable.
+    }
+  } else if (response.status >= 500) {
+    return (await caches.match(request)) ?? response;
+  }
+
+  return response;
+}
+
 /** Liefert Cache-Inhalte offline und aktualisiert erfolgreiche App-Ressourcen. @param {FetchEvent} event Fetch-Ereignis. @returns {void} Kein Rückgabewert. */
 function fetchResource(event) {
-  if (event.request.method !== "GET") {
+  if (event.request.method !== "GET" || event.request.cache === "no-store") {
+    return;
+  }
+  if (event.request.url.startsWith(self.registration.scope) &&
+    (isTreeResource(event.request.url) || isTreeResource(event.request.referrer))) {
+    event.respondWith(fetchTreeResource(event.request));
     return;
   }
   event.respondWith(caches.match(event.request).then((cached) => {
