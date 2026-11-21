@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stammbaum · Wortgeflecht</title>
+  <link rel="icon" href="./assets/wortgeflecht-favicon.svg">
+  <link rel="stylesheet" href="./styles/stammbaum.css">
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}
+  </script>
+  <script type="module" src="./stammbaum/main.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a href="./index.html">Wortgeflecht</a>
+      <h1>Stammbaum</h1>
+      <p>Erkunde die Verbindungen deiner Familie.</p>
+    </header>
+    <div class="layout">
+      <aside>
+        <label for="gedcom">GEDCOM-Datei</label>
+        <input id="gedcom" type="file" accept=".ged,.gedcom">
+        <p class="muted">Die Datei bleibt in diesem Browser.</p>
+        <p id="status" role="status">Lade gespeicherten Stammbaum …</p>
+        <div id="tools" hidden>
+          <div class="actions">
+            <button id="search" class="primary">Person suchen</button>
+            <button id="remove">Import löschen</button>
+          </div>
+          <section id="person" aria-label="Person und Verwandte"></section>
+        </div>
+      </aside>
+      <section class="board" aria-label="Stammbaum-Ansicht">
+        <div id="view"></div>
+        <p id="hint">Wähle eine GEDCOM-Datei, um den Stammbaum zu öffnen.</p>
+      </section>
+    </div>
+  </main>
+
+  <dialog id="picker" aria-labelledby="picker-title">
+    <h2 id="picker-title">Person suchen</h2>
+    <label for="query">Vor- oder Nachname</label>
+    <input id="query" type="search" autocomplete="off" autofocus>
+    <ul id="results" aria-label="Suchergebnisse"></ul>
+    <p id="result-status" role="status"></p>
+    <div class="actions">
+      <button id="start" class="primary">Oben anfangen</button>
+      <button id="close">Schließen</button>
+    </div>
+  </dialog>
+</body>
+</html>
