@@ -24,6 +24,8 @@ export function createGraph(view) {
   view.append(labels.domElement);
 
   const geometry = new THREE.SphereGeometry(0.23, 20, 12);
+  const links = new THREE.CylinderGeometry(0.035, 0.035, 1, 8);
+  const up = new THREE.Vector3(0, 1, 0);
   const group = new THREE.Group();
   scene.add(group);
 
@@ -37,15 +39,26 @@ export function createGraph(view) {
     for (const object of [...group.children]) {
       group.remove(object);
       object.material?.dispose();
-      if (object.isLine) object.geometry.dispose();
     }
   }
 
   function show(person, relatives, onSelect) {
     clear();
     const origin = new THREE.Vector3();
+    const nodes = new Map();
+
+    function connect(from, to, color) {
+      const direction = new THREE.Vector3().subVectors(to, from);
+      const link = new THREE.Mesh(links, new THREE.MeshBasicMaterial({ color }));
+      link.position.copy(from).lerp(to, 0.5);
+      link.scale.y = direction.length();
+      link.quaternion.setFromUnitVectors(up, direction.normalize());
+      group.add(link);
+    }
 
     function addNode(relative, position, relation) {
+      if (nodes.has(relative.id)) return;
+      nodes.set(relative.id, { relative, position });
       const color = colors[relation];
       const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({
         color, emissive: color, emissiveIntensity: 0.42,
@@ -66,15 +79,9 @@ export function createGraph(view) {
         button.disabled = true;
       }
       const label = new CSS2DObject(button);
-      label.position.copy(position).add(new THREE.Vector3(0, -0.5, 0));
+      label.position.copy(position).add(new THREE.Vector3(0, relation === "parents" ? 0.5 : -0.5, 0));
       group.add(label);
 
-      if (relationship) {
-        group.add(new THREE.Line(
-          new THREE.BufferGeometry().setFromPoints([origin, position]),
-          new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.65 }),
-        ));
-      }
     }
 
     addNode(person, origin, "focus");
@@ -89,6 +96,16 @@ export function createGraph(view) {
           : new THREE.Vector3(offset * spacing, (relation === "parents" ? 1 : -1) * (2.5 + tier * 1.6), -Math.abs(offset) * 0.55);
         addNode(relative, position, relation);
       });
+    }
+    for (const { relative, position } of nodes.values()) {
+      for (const childId of relative.children) {
+        const child = nodes.get(childId);
+        if (child) connect(position, child.position, colors.children);
+      }
+    }
+    for (const partner of relatives.partners) {
+      const node = nodes.get(partner.id);
+      if (node && node.relative.id !== person.id) connect(origin, node.position, colors.partners);
     }
     fit();
   }

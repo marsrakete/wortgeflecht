@@ -8,6 +8,7 @@ const picker = byId("picker");
 const query = byId("query");
 const results = byId("results");
 const details = byId("person");
+const pathList = byId("person-path");
 const hint = byId("hint");
 const remove = byId("remove");
 const relations = [
@@ -16,6 +17,7 @@ const relations = [
   ["children", "Kinder"],
 ];
 let tree, graph;
+let path = [];
 let graphUnavailable = false;
 
 function element(tag, text) {
@@ -37,6 +39,24 @@ function personButton(person, onSelect) {
 }
 
 function select(person, moveFocus = false) {
+  const previous = path.findIndex(entry => entry.id === person.id);
+  if (previous === -1) path.push(person);
+  else path = path.slice(0, previous + 1);
+
+  pathList.replaceChildren();
+  for (const entry of path) {
+    const item = element("li", "");
+    if (entry === person) {
+      item.append(element("span", entry.name));
+      item.firstElementChild.setAttribute("aria-current", "step");
+    } else {
+      const button = element("button", entry.name);
+      button.addEventListener("click", () => select(entry, true));
+      item.append(button);
+    }
+    pathList.append(item);
+  }
+
   const heading = element("h2", person.name);
   heading.tabIndex = -1;
   details.replaceChildren(heading);
@@ -82,7 +102,8 @@ function renderSearch() {
   return matches;
 }
 
-function choose(person) {
+function choose(person, resetPath = false) {
+  if (resetPath) path = [];
   picker.close();
   select(person, true);
 }
@@ -96,6 +117,7 @@ function openSearch() {
 
 async function showTree(data, filename, saved = true) {
   tree = data;
+  path = [];
   if (!graph && !graphUnavailable) {
     try {
       const { createGraph } = await import("./graph.js");
@@ -113,13 +135,14 @@ async function showTree(data, filename, saved = true) {
 
 byId("search").addEventListener("click", openSearch);
 byId("close").addEventListener("click", () => picker.close());
-byId("start").addEventListener("click", () => choose(findStart(tree.people)));
+byId("start").addEventListener("click", () => choose(findStart(tree.people), true));
 query.addEventListener("input", renderSearch);
 query.addEventListener("keydown", event => {
   if (event.key !== "Enter" || event.isComposing) return;
   event.preventDefault();
-  const person = query.value.trim() ? renderSearch()[0] : findStart(tree.people);
-  if (person) choose(person);
+  const empty = !query.value.trim();
+  const person = empty ? findStart(tree.people) : renderSearch()[0];
+  if (person) choose(person, empty);
 });
 
 function setBusy(busy) {
@@ -153,6 +176,8 @@ remove.addEventListener("click", async () => {
   try {
     await accessImport("readwrite", store => store.delete("current"));
     tree = undefined;
+    path = [];
+    pathList.replaceChildren();
     graph?.clear();
     details.replaceChildren();
     query.value = "";
