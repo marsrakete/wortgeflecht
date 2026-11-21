@@ -58,11 +58,16 @@ function isTreeResource(url) {
 }
 
 async function fetchTreeResource(request) {
+  const url = new URL(request.url);
+  if (url.origin + url.pathname === new URL("stammbaum.html", self.registration.scope).href) {
+    url.searchParams.delete("lang");
+  }
+  const cacheKey = url.href === request.url ? request : url.href;
   let response;
   try {
     response = await fetch(request, { cache: "reload" });
   } catch (error) {
-    const cached = await caches.match(request);
+    const cached = await caches.match(cacheKey);
     if (cached) return cached;
     throw error;
   }
@@ -70,12 +75,12 @@ async function fetchTreeResource(request) {
   if (response.ok) {
     try {
       const cache = await caches.open(CACHE_NAME);
-      await cache.put(request, response.clone());
+      await cache.put(cacheKey, response.clone());
     } catch {
       // The server response is still usable if browser storage is unavailable.
     }
   } else if (response.status >= 500) {
-    return (await caches.match(request)) ?? response;
+    return (await caches.match(cacheKey)) ?? response;
   }
 
   return response;
